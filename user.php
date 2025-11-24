@@ -4,11 +4,13 @@ class User{
     public $id;
     public $username;
     public $password;
+    public $role;
 
-    public function __construct($id,$username,$password){
+    public function __construct($id,$username,$password, $role){
         $this->id=$id;
         $this->username=$username;
         $this->password=$password;
+        $this->role=$role;
     }
     
     public function getUsername(){
@@ -28,7 +30,7 @@ class User{
         $data=$conn->prepare("insert into users(username,pass) values(?,?)");
         $data->execute([$this->username,password_hash($this->password, PASSWORD_DEFAULT)]);
         if($data){
-            return new User($conn->lastInsertId(),$this->username, $this->password);
+            return new User($conn->lastInsertId(),$this->username, $this->password, $this->role);
         }
         return false;
     }
@@ -57,7 +59,7 @@ class User{
         $datas->execute([$username]);
         foreach($datas->fetchAll() as $row){
             if(password_verify($password, $row['pass'])){
-                return new User($row['id'],$row['username'], $password);
+                return new User($row['id'],$row['username'], $password, $row['STATUS']);
             }
         }
         return false;
@@ -67,7 +69,7 @@ class User{
         $datas=$conn->prepare("select * from users where id=?");
         $datas->execute([$id]);
         foreach($datas->fetchAll() as $row){
-            return new User($row['id'],$row['username'], $password);
+            return new User($row['id'],$row['username'], $password, $row['STATUS']);
         }
         return false;
     }
@@ -76,7 +78,7 @@ class User{
         $datas=$conn->query("select * from users");
         $users=[];
         foreach($datas->fetchAll() as $row){
-            $users[]=new User($row['id'],$row['username'], $row['pass']);
+            $users[]=new User($row['id'],$row['username'], $row['pass'], $row['STATUS']);
         }
         return $users;
     }
