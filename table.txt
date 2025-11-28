@@ -1,0 +1,5 @@
+ini untuk tulsi table datanya 
+
+table user:
+- no int auto increment
+- username varchar(255)
