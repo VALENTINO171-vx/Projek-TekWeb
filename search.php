@@ -1,3 +1,4 @@
+
 <?php
     include 'header.php';
 ?>
@@ -11,7 +12,6 @@
     </form>
 
 <?php
-// ...existing code...
 
 $asal = trim($_GET['asal'] ?? '');
 $tujuan = trim($_GET['tujuan'] ?? '');
@@ -21,7 +21,6 @@ $where = [];
 $params = [];
 
 if (!isset($conn)) {
-    // no existing DB connection — create mysqli
     $conn = new mysqli('localhost', 'root', '', 'petra_airlines'); // adjust creds if necessary
     if ($conn->connect_error) {
         echo '<p>Database connection error.</p>';
@@ -50,9 +49,7 @@ if (count($where) > 0) {
 }
 $sql .= " ORDER BY tanggal_berangkat, jam_berangkat LIMIT 100";
 
-/* Use appropriate API depending on connection type (PDO vs mysqli) */
 if ($conn instanceof PDO) {
-    // PDO path
     $stmt = $conn->prepare($sql);
     if ($stmt) {
         $execParams = $params ?: [];
@@ -85,16 +82,13 @@ if ($conn instanceof PDO) {
         echo '<p>Search error.</p>';
     }
 } else {
-    // mysqli path
     $stmt = $conn->prepare($sql);
     if ($stmt) {
         if (!empty($params)) {
-            // build types string for mysqli
             $types = '';
             foreach ($params as $p) {
                 $types .= 's';
             }
-            // mysqli bind_param requires references
             $bindNames = [];
             $bindNames[] = & $types;
             foreach ($params as $i => $val) {
