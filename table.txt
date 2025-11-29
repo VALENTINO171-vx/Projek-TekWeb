@@ -26,10 +26,15 @@ INSERT INTO penerbangan (kode_penerbangan, asal, tujuan, tanggal_berangkat, jam_
 ('PA107', 'Jakarta', 'Bali', '2025-12-03', '14:00:00', '16:30:00', 900000, 130),
 ('PA108', 'Surabaya', 'Makassar', '2025-12-04', '11:00:00', '14:00:00', 950000, 90);
 
--- table users
-CREATE TABLE penerbangan (
+-- Tabel Users (untuk login)
+CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
-    pass VARCHAR(100) NOT NULL,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    pass VARCHAR(255) NOT NULL,
     role VARCHAR(20) NOT NULL DEFAULT 'member' CHECK (role IN ('member', 'admin'))
 );
+
+-- Insert User Contoh (password sebaiknya di-hash dengan PHP)
+INSERT INTO users (username, pass, role) VALUES
+('admin', '$2y$10$abcdefghijklmnopqrstuv', 'admin'),
+('nathan', '$2y$10$abcdefghijklmnopqrstuv', 'member');
