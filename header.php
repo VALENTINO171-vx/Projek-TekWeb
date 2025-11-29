@@ -18,7 +18,7 @@
     <?php if(isset($_SESSION['username'])): ?>
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Petra</a>
+        <a class="navbar-brand" href="index.php">Petra</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
         </button>
@@ -27,7 +27,6 @@
             <li class="nav-item">
             <a class="nav-link active" aria-current="page" href="search.php">Home</a>
             </li>
-            
         </ul>
             <form class="d-flex" role="logout" action="logout.php" method="POST">
                 <button class="btn btn-outline-danger" type="submit">Logout</button>
