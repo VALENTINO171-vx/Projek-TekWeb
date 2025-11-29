@@ -78,7 +78,7 @@ class User{
         $datas=$conn->query("select * from users");
         $users=[];
         foreach($datas->fetchAll() as $row){
-            $users[]=new User($row['id'],$row['username'], $row['pass'], $row['STATUS']);
+            $users[]=new User($row['id'],$row['username'], $row['pass'], $row['role']);
         }
         return $users;
     }
