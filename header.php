@@ -40,10 +40,8 @@
             <li class="nav-item">
             <a class="nav-link active" aria-current="page" href="search.php">search</a>
             </li>
-        </ul>
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="select_seat.php">booking</a>
+            <a class="nav-link active" aria-current="page" href="booking.php">booking</a>
             </li>
         </ul>
             <form class="d-flex" role="logout" action="logout.php" method="POST">

@@ -21,11 +21,10 @@ include 'header.php';
               <label class="form-label">To</label>
               <input id="tujuan" type="text" name="tujuan" class="form-control" placeholder="Singapore (SIN)" required>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-12">
               <label class="form-label">Depart</label>
               <input id="depart_date" type="date" name="depart_date" class="form-control" required>
             </div>
-
             <div class="col-12">
               <button id="searchBtn" class="btn btn-primary w-100" type="button">Search</button>
             </div>
