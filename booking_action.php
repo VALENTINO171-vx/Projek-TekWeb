@@ -9,7 +9,7 @@ $flight_id = $_POST['flight_id'] ?? '';
 $name      = $_POST['name'] ?? '';
 $email     = $_POST['email'] ?? '';
 $phone     = $_POST['phone'] ?? '';
-$seat      = $_POST['seat'] ?? '';
+$seat      = $_POST['seat_number'] ?? '';
 
 if ($flight_id == '' || $name == '' || $email == '' || $phone == '' || $seat == '') {
     die("Data tidak lengkap.");
@@ -18,7 +18,7 @@ if ($flight_id == '' || $name == '' || $email == '' || $phone == '' || $seat == 
 try {
 
     $sql = "INSERT INTO booking (flight_id, name, email, phone, seat_number)
-            VALUES (:flight_id, :name, :email, :phone, :seat)";
+            VALUES (:flight_id, :name, :email, :phone, :seat_number)";
 
     $stmt = $conn->prepare($sql);
 
@@ -26,7 +26,7 @@ try {
     $stmt->bindParam(':name', $name);
     $stmt->bindParam(':email', $email);
     $stmt->bindParam(':phone', $phone);
-    $stmt->bindParam(':seat', $seat);
+    $stmt->bindParam(':seat_number', $seat);
 
     $stmt->execute();
 

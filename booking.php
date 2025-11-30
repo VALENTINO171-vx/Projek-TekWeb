@@ -152,8 +152,8 @@ include 'header.php';
 
   <div class="mb-2"><strong>Selected seat:</strong> <span id="chosen-seat">-</span></div>
 
-  <form action="./booking_action.php" method="POST">
-      <input type="hidden" name="flight_id" value="<?= (int)$flight_id ?>">
+  <form action="booking_action.php" method="POST">
+      <input type="hidden" id="flight_id" name="flight_id" value="<?= (int)$flight_id ?>">
       <input type="hidden" id="seat_id" name="seat_id">
       <input type="hidden" id="seat_number" name="seat_number">
 
