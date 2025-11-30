@@ -3,11 +3,10 @@ include 'connection.php';
 session_start();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-+    http_response_code(405);
-+    error_log('booking_action called without POST. REQUEST_METHOD=' . $_SERVER['REQUEST_METHOD'] . ' URI=' . $_SERVER['REQUEST_URI']);
+    http_response_code(405);
+    error_log('booking_action called without POST. REQUEST_METHOD=' . $_SERVER['REQUEST_METHOD'] . ' URI=' . $_SERVER['REQUEST_URI']);
     die('Invalid request method.');
 }
-
 error_log('booking_action POST keys: ' . json_encode(array_keys($_POST)) . ' session_user=' . ($_SESSION['user_id'] ?? 'NULL'));
 
 if (empty($_SESSION['user_id'])) {
