@@ -39,18 +39,6 @@ INSERT INTO users (username, pass, role) VALUES
 ('damin', '$2y$10$abcdefghijklmnopqrstuv', 'admin'),
 ('nathan', '$2y$10$abcdefghijklmnopqrstuv', 'member');
 
--- table booking
-CREATE TABLE booking (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    flight_id INT NOT NULL,
-    seat_no VARCHAR(5) NOT NULL,
-    passenger_name VARCHAR(100) NOT NULL,
-    passenger_phone VARCHAR(20),
-    passenger_email VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (flight_id) REFERENCES penerbangan(id)
-);
-
 -- table seat 
 CREATE TABLE seat (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -59,5 +47,20 @@ CREATE TABLE seat (
     class VARCHAR(20) DEFAULT 'economy',
     status ENUM('available','booked') DEFAULT 'available',
     FOREIGN KEY (flight_id) REFERENCES penerbangan(id)
+);
+
+-- table booking
+CREATE TABLE booking (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    flight_id INT NOT NULL,
+    seat_id INT NOT NULL,
+    passenger_id INT NOT NULL,
+    passenger_name VARCHAR(100) NOT NULL,
+    passenger_phone VARCHAR(20),
+    passenger_email VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (flight_id) REFERENCES penerbangan(id),
+    FOREIGN KEY (seat_id) REFERENCES seat(id),
+    FOREIGN KEY (passenger_id) REFERENCES Users(id)
 );
 

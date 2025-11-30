@@ -14,7 +14,19 @@
     <title>Home</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  
+    <style>
+    .hero-bg {
+      background: url('assets/img/hero.jpg') center/cover no-repeat;
+      min-height: 60vh;
+    }
+    .backdrop {
+      background: rgba(0,0,0,0.35);
+    }
+    .brand-gradient {
+      background: linear-gradient(135deg, #0ea5e9, #1e3a8a);
+    };
+    </style>
+</head>
 <body>
     <?php if(isset($_SESSION['username'])): ?>
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
@@ -26,7 +38,12 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="search.php">Home</a>
+            <a class="nav-link active" aria-current="page" href="search.php">search</a>
+            </li>
+        </ul>
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="select_seat.php">booking</a>
             </li>
         </ul>
             <form class="d-flex" role="logout" action="logout.php" method="POST">

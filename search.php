@@ -39,79 +39,81 @@ include 'header.php';
 </section>
 
 <script>
-const resultsEl = document.getElementById('results');
-const btn = document.getElementById('searchBtn');
+(function () {
+  const resultsEl = document.getElementById('results');
+  const btn = document.getElementById('searchBtn');
+  const form = document.getElementById('searchForm');
+  if (!resultsEl || !btn || !form) return;
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
-}
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
 
-async function doSearch() {
-  resultsEl.innerHTML = '';
-  btn.disabled = true;
-  const asal = document.getElementById('asal').value.trim();
-  const tujuan = document.getElementById('tujuan').value.trim();
-  const depart_date = document.getElementById('depart_date').value;
+  async function doSearch(e) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    resultsEl.innerHTML = '';
+    btn.disabled = true;
 
-  if (!asal || !tujuan || !depart_date) {
-    resultsEl.innerHTML = '<div class="alert alert-danger">Please fill all fields</div>';
-    btn.disabled = false;
-    return;
-  }
+    const asal = document.getElementById('asal').value.trim();
+    const tujuan = document.getElementById('tujuan').value.trim();
+    const depart_date = document.getElementById('depart_date').value;
 
-  resultsEl.innerHTML = '<div class="alert alert-info">Searching…</div>';
-
-  try {
-    const resp = await fetch('search_ajax.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ asal, tujuan, depart_date })
-    });
-
-    const json = await resp.json();
-    if (!resp.ok || !json.success) {
-      resultsEl.innerHTML = `<div class="alert alert-danger">Error: ${escapeHtml(json.message || 'Search failed')}</div>`;
+    if (!asal || !tujuan || !depart_date) {
+      resultsEl.innerHTML = '<div class="alert alert-danger">Please fill all fields.</div>';
       btn.disabled = false;
       return;
     }
 
-    const rows = json.data || [];
-    if (!rows.length) {
-      resultsEl.innerHTML = '<div class="alert alert-warning">No flights found</div>';
+    resultsEl.innerHTML = '<div class="alert alert-info">Searching…</div>';
+
+    try {
+      const resp = await fetch('search_ajax.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ asal, tujuan, depart_date })
+      });
+
+      const payload = await resp.json();
+
+      if (!resp.ok || !payload.success) {
+        resultsEl.innerHTML = `<div class="alert alert-danger">Error: ${escapeHtml(payload.message || 'Search failed')}</div>`;
+        btn.disabled = false;
+        return;
+      }
+
+      const rows = payload.data || [];
+      if (!rows.length) {
+        resultsEl.innerHTML = '<div class="alert alert-warning">No flights found.</div>';
+        btn.disabled = false;
+        return;
+      }
+
+      let html = '<div class="table-responsive"><table class="table table-striped table-sm"><thead><tr>';
+      html += '<th>Asal</th><th>Tujuan</th><th>Tanggal</th><th>Berangkat</th><th>Tiba</th><th>Harga</th><th>Kursi</th>';
+      html += '</tr></thead><tbody>';
+
+      rows.forEach(r => {
+        html += '<tr>' +
+          `<td>${escapeHtml(r.asal)}</td>` +
+          `<td>${escapeHtml(r.tujuan)}</td>` +
+          `<td>${escapeHtml(r.tanggal_berangkat)}</td>` +
+          `<td>${escapeHtml(r.jam_berangkat)}</td>` +
+          `<td>${escapeHtml(r.jam_tiba)}</td>` +
+          `<td>${escapeHtml(new Intl.NumberFormat('id-ID').format(r.harga))}</td>` +
+          `<td>${escapeHtml(String(r.kursi_tersedia))}</td>` +
+        '</tr>';
+      });
+
+      html += '</tbody></table></div>';
+      resultsEl.innerHTML = html;
+    } catch (err) {
+      resultsEl.innerHTML = `<div class="alert alert-danger">Request failed: ${escapeHtml(err.message)}</div>`;
+    } finally {
       btn.disabled = false;
-      return;
     }
-
-    let html = '<div class="table-responsive"><table class="table table-striped table-sm"><thead><tr>';
-    html += '<th>Asal</th><th>Tujuan</th><th>Tanggal</th><th>Berangkat</th><th>Tiba</th><th>Harga</th><th>Kursi</th>';
-    html += '</tr></thead><tbody>';
-    rows.forEach(r => {
-      html += '<tr>' +
-        `<td>${escapeHtml(r.asal)}</td>` +
-        `<td>${escapeHtml(r.tujuan)}</td>` +
-        `<td>${escapeHtml(r.tanggal_berangkat)}</td>` +
-        `<td>${escapeHtml(r.jam_berangkat)}</td>` +
-        `<td>${escapeHtml(r.jam_tiba)}</td>` +
-        `<td>${escapeHtml(new Intl.NumberFormat('id-ID').format(r.harga))}</td>` +
-        `<td>${escapeHtml(String(r.kursi_tersedia))}</td>` +
-      '</tr>';
-    });
-    html += '</tbody></table></div>';
-    resultsEl.innerHTML = html;
-  } catch (err) {
-    resultsEl.innerHTML = `<div class="alert alert-danger">Request failed: ${escapeHtml(err.message)}</div>`;
-  } finally {
-    btn.disabled = false;
   }
-}
 
-btn.addEventListener('click', doSearch);
-
-document.getElementById('searchForm').addEventListener('keyup', (ev) => {
-  if (ev.key === 'Enter') doSearch();
-});
+  btn.addEventListener('click', doSearch);
+  form.addEventListener('submit', doSearch);
+})();
 </script>
 
-<?php
-include 'footer.php';
-?>
+<?php include 'footer.php'; ?>
