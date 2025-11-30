@@ -1,130 +1,117 @@
-
 <?php
-    include 'header.php';
+include 'header.php';
 ?>
-    <h1>Search Flights</h1>
+<section class="hero-bg d-flex align-items-center">
+  <div class="container backdrop py-4 rounded">
+    <div class="row g-4 text-white">
+      <div class="col-lg-6">
+        <h1 class="display-6 fw-bold">Fly better with Petra Airline</h1>
+        <p class="lead">Temukan penerbangan terbaik ke destinasi favorit Anda dengan layanan kelas dunia.</p>
+      </div>
+      <div class="col-lg-6">
+        <div class="bg-white text-gray-900 rounded p-3 shadow">
+          <h5 class="mb-3 fw-semibold">Search flights</h5>
 
-    <form method="get" action="search.php">
-        <input type="text" name="asal" value="<?php echo htmlspecialchars($_GET['asal'] ?? ''); ?>" placeholder="Asal (city)"/>
-        <input type="text" name="tujuan" value="<?php echo htmlspecialchars($_GET['tujuan'] ?? ''); ?>" placeholder="Tujuan (city)"/>
-        <input type="date" name="tanggal" value="<?php echo htmlspecialchars($_GET['tanggal'] ?? ''); ?>" />
-        <button type="submit">Search</button>
-    </form>
+          <form id="searchForm" class="row g-2" onsubmit="return false;">
+            <div class="col-md-6">
+              <label class="form-label">From</label>
+              <input id="asal" type="text" name="asal" class="form-control" placeholder="Surabaya (SUB)" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">To</label>
+              <input id="tujuan" type="text" name="tujuan" class="form-control" placeholder="Singapore (SIN)" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Depart</label>
+              <input id="depart_date" type="date" name="depart_date" class="form-control" required>
+            </div>
+
+            <div class="col-12">
+              <button id="searchBtn" class="btn btn-primary w-100" type="button">Search</button>
+            </div>
+          </form>
+
+          <div id="results" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+const resultsEl = document.getElementById('results');
+const btn = document.getElementById('searchBtn');
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+}
+
+async function doSearch() {
+  resultsEl.innerHTML = '';
+  btn.disabled = true;
+  const asal = document.getElementById('asal').value.trim();
+  const tujuan = document.getElementById('tujuan').value.trim();
+  const depart_date = document.getElementById('depart_date').value;
+
+  if (!asal || !tujuan || !depart_date) {
+    resultsEl.innerHTML = '<div class="alert alert-danger">Please fill all fields</div>';
+    btn.disabled = false;
+    return;
+  }
+
+  resultsEl.innerHTML = '<div class="alert alert-info">Searching…</div>';
+
+  try {
+    const resp = await fetch('search_ajax.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ asal, tujuan, depart_date })
+    });
+
+    const json = await resp.json();
+    if (!resp.ok || !json.success) {
+      resultsEl.innerHTML = `<div class="alert alert-danger">Error: ${escapeHtml(json.message || 'Search failed')}</div>`;
+      btn.disabled = false;
+      return;
+    }
+
+    const rows = json.data || [];
+    if (!rows.length) {
+      resultsEl.innerHTML = '<div class="alert alert-warning">No flights found</div>';
+      btn.disabled = false;
+      return;
+    }
+
+    let html = '<div class="table-responsive"><table class="table table-striped table-sm"><thead><tr>';
+    html += '<th>Asal</th><th>Tujuan</th><th>Tanggal</th><th>Berangkat</th><th>Tiba</th><th>Harga</th><th>Kursi</th>';
+    html += '</tr></thead><tbody>';
+    rows.forEach(r => {
+      html += '<tr>' +
+        `<td>${escapeHtml(r.asal)}</td>` +
+        `<td>${escapeHtml(r.tujuan)}</td>` +
+        `<td>${escapeHtml(r.tanggal_berangkat)}</td>` +
+        `<td>${escapeHtml(r.jam_berangkat)}</td>` +
+        `<td>${escapeHtml(r.jam_tiba)}</td>` +
+        `<td>${escapeHtml(new Intl.NumberFormat('id-ID').format(r.harga))}</td>` +
+        `<td>${escapeHtml(String(r.kursi_tersedia))}</td>` +
+      '</tr>';
+    });
+    html += '</tbody></table></div>';
+    resultsEl.innerHTML = html;
+  } catch (err) {
+    resultsEl.innerHTML = `<div class="alert alert-danger">Request failed: ${escapeHtml(err.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+btn.addEventListener('click', doSearch);
+
+document.getElementById('searchForm').addEventListener('keyup', (ev) => {
+  if (ev.key === 'Enter') doSearch();
+});
+</script>
 
 <?php
-
-$asal = trim($_GET['asal'] ?? '');
-$tujuan = trim($_GET['tujuan'] ?? '');
-$tanggal = trim($_GET['tanggal'] ?? '');
-
-$where = [];
-$params = [];
-
-if (!isset($conn)) {
-    $conn = new mysqli('localhost', 'root', '', 'petra_airlines'); // adjust creds if necessary
-    if ($conn->connect_error) {
-        echo '<p>Database connection error.</p>';
-        include 'footer.php';
-        exit;
-    }
-}
-
-if ($asal !== '') {
-    $where[] = "asal LIKE ?";
-    $params[] = "%{$asal}%";
-}
-if ($tujuan !== '') {
-    $where[] = "tujuan LIKE ?";
-    $params[] = "%{$tujuan}%";
-}
-if ($tanggal !== '') {
-    $where[] = "tanggal_berangkat = ?";
-    $params[] = $tanggal;
-}
-
-$sql = "SELECT id, asal, tujuan, tanggal_berangkat, jam_berangkat, jam_tiba, harga, kursi_tersedia
-        FROM penerbangan";
-if (count($where) > 0) {
-    $sql .= " WHERE " . implode(' AND ', $where);
-}
-$sql .= " ORDER BY tanggal_berangkat, jam_berangkat LIMIT 100";
-
-if ($conn instanceof PDO) {
-    $stmt = $conn->prepare($sql);
-    if ($stmt) {
-        $execParams = $params ?: [];
-        $ok = $stmt->execute($execParams);
-        if ($ok) {
-            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            if (!empty($rows)) {
-                echo '<table border="1" cellpadding="6" cellspacing="0">';
-                echo '<thead><tr><th>Asal</th><th>Tujuan</th><th>Tanggal</th><th>Berangkat</th><th>Tiba</th><th>Harga</th><th>Kursi</th></tr></thead>';
-                echo '<tbody>';
-                foreach ($rows as $row) {
-                    echo '<tr>';
-                    echo '<td>' . htmlspecialchars($row['asal']) . '</td>';
-                    echo '<td>' . htmlspecialchars($row['tujuan']) . '</td>';
-                    echo '<td>' . htmlspecialchars($row['tanggal_berangkat']) . '</td>';
-                    echo '<td>' . htmlspecialchars($row['jam_berangkat']) . '</td>';
-                    echo '<td>' . htmlspecialchars($row['jam_tiba']) . '</td>';
-                    echo '<td>' . htmlspecialchars(number_format($row['harga'], 0, ',', '.')) . '</td>';
-                    echo '<td>' . (int)$row['kursi_tersedia'] . '</td>';
-                    echo '</tr>';
-                }
-                echo '</tbody></table>';
-            } else {
-                echo '<p>No flights found.</p>';
-            }
-        } else {
-            echo '<p>Search error.</p>';
-        }
-    } else {
-        echo '<p>Search error.</p>';
-    }
-} else {
-    $stmt = $conn->prepare($sql);
-    if ($stmt) {
-        if (!empty($params)) {
-            $types = '';
-            foreach ($params as $p) {
-                $types .= 's';
-            }
-            $bindNames = [];
-            $bindNames[] = & $types;
-            foreach ($params as $i => $val) {
-                $bindNames[] = & $params[$i];
-            }
-            call_user_func_array([$stmt, 'bind_param'], $bindNames);
-        }
-
-        $stmt->execute();
-        $res = $stmt->get_result();
-
-        if ($res && $res->num_rows > 0) {
-            echo '<table border="1" cellpadding="6" cellspacing="0">';
-            echo '<thead><tr><th>Asal</th><th>Tujuan</th><th>Tanggal</th><th>Berangkat</th><th>Tiba</th><th>Harga</th><th>Kursi</th></tr></thead>';
-            echo '<tbody>';
-            while ($row = $res->fetch_assoc()) {
-                echo '<tr>';
-                echo '<td>' . htmlspecialchars($row['asal']) . '</td>';
-                echo '<td>' . htmlspecialchars($row['tujuan']) . '</td>';
-                echo '<td>' . htmlspecialchars($row['tanggal_berangkat']) . '</td>';
-                echo '<td>' . htmlspecialchars($row['jam_berangkat']) . '</td>';
-                echo '<td>' . htmlspecialchars($row['jam_tiba']) . '</td>';
-                echo '<td>' . htmlspecialchars(number_format($row['harga'], 0, ',', '.')) . '</td>';
-                echo '<td>' . (int)$row['kursi_tersedia'] . '</td>';
-                echo '</tr>';
-            }
-            echo '</tbody></table>';
-        } else {
-            echo '<p>No flights found.</p>';
-        }
-
-        $stmt->close();
-    } else {
-        echo '<p>Search error.</p>';
-    }
-}
-
 include 'footer.php';
 ?>
