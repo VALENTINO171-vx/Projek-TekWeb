@@ -43,9 +43,6 @@
             <li class="nav-item">
             <a class="nav-link active" aria-current="page" href="booking.php">ordering</a>
             </li>
-            <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="show_booking.php">booking</a>
-            </li>
         </ul>
             <form class="d-flex" role="logout" action="logout.php" method="POST">
                 <button class="btn btn-outline-danger" type="submit">Logout</button>

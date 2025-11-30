@@ -13,7 +13,7 @@ if ($id <= 0) {
     exit;
 }
 
-// Fetch booking + flight + seat info
+// SQL query
 $sql = "
 SELECT 
     b.id,
@@ -22,7 +22,7 @@ SELECT
     b.phone,
     b.seat_number,
     b.flight_id,
-    
+
     p.kode_penerbangan,
     p.asal,
     p.tujuan,
@@ -30,7 +30,7 @@ SELECT
     p.jam_berangkat,
     p.jam_tiba,
     p.harga,
-    
+
     s.class AS seat_class
 
 FROM booking b
@@ -44,13 +44,10 @@ LIMIT 1
 ";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$res = $stmt->get_result();
-$data = $res->fetch_assoc();
-$stmt->close();
+$stmt->execute([$id]);
+$data = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Not found
+// No result
 if (!$data) {
     echo "<div class='container p-4 alert alert-danger'>Booking tidak ditemukan.</div>";
     include 'footer.php';
