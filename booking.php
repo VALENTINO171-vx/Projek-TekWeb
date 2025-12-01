@@ -1,14 +1,12 @@
 <?php
 include 'connection.php';
 
-
 $flight_id = 0;
 if (isset($_GET['id'])) $flight_id = intval($_GET['id']);
 elseif (isset($_GET['flight_id'])) $flight_id = intval($_GET['flight_id']);
 
-
+// JIKA BELUM PILIH FLIGHT → TAMPILKAN LIST PENERBANGAN
 if ($flight_id <= 0) {
-    
     $flights = [];
     if ($conn instanceof PDO) {
         $stmt = $conn->query("SELECT id, kode_penerbangan, asal, tujuan, tanggal_berangkat, jam_berangkat, harga FROM penerbangan ORDER BY tanggal_berangkat, jam_berangkat");
@@ -22,27 +20,42 @@ if ($flight_id <= 0) {
     }
 
     include 'header.php';
-    echo '<div class="container py-4"><h3>Available flights</h3>';
-    if (empty($flights)) {
-        echo '<div class="alert alert-warning">No flights available.</div>';
-    } else {
-        echo '<div class="row g-3">';
-        foreach ($flights as $f) {
-            echo '<div class="col-md-6"><div class="card"><div class="card-body">';
-            echo '<h5>' . htmlspecialchars($f['kode_penerbangan'] ?? '') . ' — ' . htmlspecialchars($f['asal']) . ' → ' . htmlspecialchars($f['tujuan']) . '</h5>';
-            echo '<p class="mb-1">Date: ' . htmlspecialchars($f['tanggal_berangkat']) . ' • ' . htmlspecialchars($f['jam_berangkat']) . '</p>';
-            echo '<p class="mb-1">Price: Rp' . number_format($f['harga'] ?? 0,0,',','.') . '</p>';
-            echo '<a class="btn btn-primary" href="booking.php?id=' . (int)$f['id'] . '">Book this flight</a>';
-            echo '</div></div></div>';
-        }
-        echo '</div>';
-    }
-    echo '</div>';
+    ?>
+    <div class="container py-4">
+        <h3>Available flights</h3>
+        <?php if (empty($flights)): ?>
+            <div class="alert alert-warning">No flights available.</div>
+        <?php else: ?>
+            <div class="row g-3">
+                <?php foreach ($flights as $f): ?>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5>
+                                    <?= htmlspecialchars($f['kode_penerbangan'] ?? '') ?>
+                                    — <?= htmlspecialchars($f['asal']) ?> → <?= htmlspecialchars($f['tujuan']) ?>
+                                </h5>
+                                <p class="mb-1">
+                                    Date: <?= htmlspecialchars($f['tanggal_berangkat']) ?>
+                                    • <?= htmlspecialchars($f['jam_berangkat']) ?>
+                                </p>
+                                <p class="mb-1">
+                                    Price: Rp<?= number_format($f['harga'] ?? 0, 0, ',', '.') ?>
+                                </p>
+                                <a class="btn btn-primary" href="booking.php?id=<?= (int)$f['id'] ?>">Book this flight</a>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+    <?php
     include 'footer.php';
     exit;
 }
 
-// load flight securely
+// JIKA SUDAH ADA flight_id → LOAD DETAIL PENERBANGAN
 $flight = null;
 if ($conn instanceof PDO) {
     $stmt = $conn->prepare("SELECT * FROM penerbangan WHERE id = ? LIMIT 1");
@@ -64,7 +77,7 @@ if (!$flight) {
     exit;
 }
 
-// ensure seats exist: if none, generate 1A..6F
+// Pastikan seat untuk flight ini sudah ada; jika belum, generate 1A..6F
 $cnt = 0;
 if ($conn instanceof PDO) {
     $stmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM seat WHERE flight_id = ?");
@@ -106,7 +119,7 @@ if ($cnt === 0) {
     }
 }
 
-// fetch seats to display
+// Fetch semua kursi untuk flight ini
 $seats = [];
 if ($conn instanceof PDO) {
     $stmt = $conn->prepare("SELECT id, seat_no, status, class FROM seat WHERE flight_id = ? ORDER BY seat_no");
@@ -123,6 +136,23 @@ if ($conn instanceof PDO) {
 
 include 'header.php';
 ?>
+<style>
+  .seat {
+    border: 1px solid #ccc;
+    font-size: 0.85rem;
+  }
+  .seat.available {
+    background-color: #d4edda; 
+  }
+  .seat.booked {
+    background-color: #f8d7da; 
+    cursor: not-allowed !important;
+    opacity: 0.7;
+  }
+  .seat.selected {
+    border: 2px solid #0d6efd !important; 
+  }
+</style>
 
 <div class="container py-4">
   <h2>Booking Penerbangan — <?= htmlspecialchars($flight['kode_penerbangan']) ?></h2>
@@ -136,6 +166,11 @@ include 'header.php';
   </div>
 
   <h5>Pilih Kursi</h5>
+  <div class="mb-2">
+    <span class="badge bg-success">Available</span>
+    <span class="badge bg-danger">Booked</span>
+  </div>
+
   <div id="seat-map" class="mb-3 d-flex flex-wrap">
     <?php foreach ($seats as $s): 
         $cls = ($s['status'] === 'available') ? 'available' : 'booked';
@@ -188,19 +223,23 @@ include 'header.php';
 
   seatEls.forEach(el => {
     el.addEventListener('click', () => {
-      if (selectedId) document.querySelector('.seat[data-seat-id="'+selectedId+'"]')?.classList.remove('border','border-primary');
+      if (selectedId) {
+        document
+          .querySelector('.seat[data-seat-id="'+selectedId+'"]')
+          ?.classList.remove('selected');
+      }
       const id = el.dataset.seatId;
       const no = el.dataset.seatNo;
       selectedId = id;
-      el.classList.add('border','border-primary');
+      el.classList.add('selected');
       seatIdInput.value = id;
-      seatNumberInput.value = no; // keep compatibility
+      seatNumberInput.value = no; 
       chosen.textContent = no;
       btn.disabled = false;
     });
   });
 
-  // simple form check
+  
   document.querySelector('form').addEventListener('submit', function (e) {
     if (!seatIdInput.value) {
       e.preventDefault();

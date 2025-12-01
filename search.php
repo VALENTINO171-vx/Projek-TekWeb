@@ -44,7 +44,11 @@ include 'header.php';
   const form = document.getElementById('searchForm');
   if (!resultsEl || !btn || !form) return;
 
-  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    })[m]);
+  }
 
   async function doSearch(e) {
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
@@ -86,7 +90,7 @@ include 'header.php';
       }
 
       let html = '<div class="table-responsive"><table class="table table-striped table-sm"><thead><tr>';
-      html += '<th>Asal</th><th>Tujuan</th><th>Tanggal</th><th>Berangkat</th><th>Tiba</th><th>Harga</th><th>Kursi</th>';
+      html += '<th>Asal</th><th>Tujuan</th><th>Tanggal</th><th>Berangkat</th><th>Tiba</th><th>Harga</th><th>Kursi</th><th>Aksi</th>';
       html += '</tr></thead><tbody>';
 
       rows.forEach(r => {
@@ -98,6 +102,7 @@ include 'header.php';
           `<td>${escapeHtml(r.jam_tiba)}</td>` +
           `<td>${escapeHtml(new Intl.NumberFormat('id-ID').format(r.harga))}</td>` +
           `<td>${escapeHtml(String(r.kursi_tersedia))}</td>` +
+          `<td><a class="btn btn-sm btn-primary" href="booking.php?id=${encodeURIComponent(r.id)}">Book</a></td>` +
         '</tr>';
       });
 
