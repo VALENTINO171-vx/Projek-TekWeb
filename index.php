@@ -1,5 +1,6 @@
 <?php
   include 'header.php';
+  include 'connection.php';
 ?>
 <h1 class="text-center brand-gradient my-8 text-4xl font-bold">Search Flights</h1>  
 
@@ -43,34 +44,41 @@
   </div>
 </section>
 
-<section id="promos" class="py-5 bg-white">
-  <div class="container">
-    <div class="mb-4 text-center">
-      <h2 class="fw-bold">Latest promotions</h2>
-      <p class="text-muted">Nikmati diskon terbatas untuk rute pilihan.</p>
+<?php
+
+$promoQuery = $conn->query("
+    SELECT id, kode_penerbangan, asal, tujuan, tanggal_berangkat, harga 
+    FROM penerbangan
+    ORDER BY harga ASC
+    LIMIT 3
+");
+
+$promos = $promoQuery->fetchAll(PDO::FETCH_ASSOC);
+?>
+
+<div class="container mt-5">
+    <h2 class="mb-4">🌟 Promo Terbaik Hari Ini</h2>
+    <div class="row">
+        <?php foreach($promos as $promo): ?>
+            <div class="col-md-4">
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title"><?= htmlspecialchars($promo['kode_penerbangan']) ?></h5>
+                        <p class="card-text">
+                            <?= htmlspecialchars($promo['asal']) ?> ➜ <?= htmlspecialchars($promo['tujuan']) ?><br>
+                            Tanggal: <?= htmlspecialchars($promo['tanggal_berangkat']) ?><br>
+                            Harga: <b>Rp<?= number_format($promo['harga'], 0, ',', '.') ?></b>
+                        </p>
+                        <a href="booking.php?flight_id=<?= $promo['id'] ?>" class="btn btn-primary w-100">
+                            Book Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
     </div>
-    <div class="row g-3">
-      <div class="col-md-4">
-        <div class="p-4 rounded border">
-          <h6 class="fw-semibold">SUB → SIN</h6>
-          <p class="text-muted mb-2">Mulai dari Rp 1.800.000</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="p-4 rounded border">
-          <h6 class="fw-semibold">SUB → TYO</h6>
-          <p class="text-muted mb-2">Mulai dari Rp 5.200.000</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="p-4 rounded border">
-          <h6 class="fw-semibold">SUB → DPS</h6>
-          <p class="text-muted mb-2">Mulai dari Rp 900.000</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+</div>
+
 
 <style>
   /* slider styles */
